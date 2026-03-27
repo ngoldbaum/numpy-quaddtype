@@ -301,6 +301,7 @@ create_quad_comparison_ufunc(PyObject *numpy, const char *ufunc_name)
     };
 
     if (PyUFunc_AddLoopFromSpec(ufunc, &Spec) < 0) {
+        Py_DECREF(ufunc);
         return -1;
     }
 
@@ -326,43 +327,41 @@ create_quad_comparison_ufunc(PyObject *numpy, const char *ufunc_name)
     };
 
     if (PyUFunc_AddLoopFromSpec(ufunc, &Spec_reduce) < 0) {
+        Py_DECREF(ufunc);
         return -1;
     }
 
-    PyObject *promoter_capsule =
-            PyCapsule_New((void *)&comparison_ufunc_promoter, "numpy._ufunc_promoter", NULL);
-    if (promoter_capsule == NULL) {
-        return -1;
+    PyObject *other_DTypes[] = {
+        (PyObject *)&PyArray_IntAbstractDType,
+        (PyObject *)&PyArray_FloatAbstractDType,
+    };
+
+    for (int i=0; i<2; i++) {
+
+        PyObject *left_DTypes[] = {
+            (PyObject *)&QuadPrecDType,
+            other_DTypes[i],
+            (PyObject *)&PyArray_BoolDType
+        };
+
+        if (add_promoter(ufunc, left_DTypes, 3) != 0) {
+            Py_DECREF(ufunc);
+            return -1;
+        }
+
+        PyObject *right_DTypes[] = {
+            other_DTypes[i],
+            (PyObject *)&QuadPrecDType,
+            (PyObject *)&PyArray_BoolDType
+        };
+
+        if (add_promoter(ufunc, right_DTypes, 3) != 0) {
+            Py_DECREF(ufunc);
+            return -1;
+        }
     }
 
-    // Register promoter for (QuadPrecDType, Any, Bool) - needed for mixed-type comparisons
-    PyObject *DTypes = PyTuple_Pack(3, &QuadPrecDType, &PyArrayDescr_Type, &PyArray_BoolDType);
-    if (DTypes == 0) {
-        Py_DECREF(promoter_capsule);
-        return -1;
-    }
-
-    if (PyUFunc_AddPromoter(ufunc, DTypes, promoter_capsule) < 0) {
-        Py_DECREF(promoter_capsule);
-        Py_DECREF(DTypes);
-        return -1;
-    }
-    Py_DECREF(DTypes);
-
-    // Register promoter for (Any, QuadPrecDType, Bool) - needed for reverse mixed-type comparisons
-    DTypes = PyTuple_Pack(3, &PyArrayDescr_Type, &QuadPrecDType, &PyArray_BoolDType);
-    if (DTypes == 0) {
-        Py_DECREF(promoter_capsule);
-        return -1;
-    }
-
-    if (PyUFunc_AddPromoter(ufunc, DTypes, promoter_capsule) < 0) {
-        Py_DECREF(promoter_capsule);
-        Py_DECREF(DTypes);
-        return -1;
-    }
-    Py_DECREF(promoter_capsule);
-    Py_DECREF(DTypes);
+    Py_DECREF(ufunc);
 
     return 0;
 }

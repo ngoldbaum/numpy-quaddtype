@@ -86,5 +86,42 @@ quad_ufunc_promoter(PyUFuncObject *ufunc, PyArray_DTypeMeta *op_dtypes[],
     return 0;
 }
 
+static inline int
+add_promoter(PyObject *ufunc,
+             PyObject *dtypes[], size_t n_dtypes)
+{
+    PyObject *DType_tuple = NULL;
+    PyObject *promoter_capsule = NULL;
+    int ret = -1;
+
+    DType_tuple = PyTuple_New(n_dtypes);
+
+    if (DType_tuple == NULL) {
+        goto cleanup;
+    }
+
+    for (size_t i=0; i<n_dtypes; i++) {
+        Py_INCREF((PyObject *)dtypes[i]);
+        PyTuple_SET_ITEM(DType_tuple, i, (PyObject *)dtypes[i]);
+    }
+
+    promoter_capsule = PyCapsule_New(
+            (void *)&quad_ufunc_promoter, "numpy._ufunc_promoter", NULL);
+
+    if (promoter_capsule == NULL) {
+        goto cleanup;
+    }
+
+    if (PyUFunc_AddPromoter(ufunc, DType_tuple, promoter_capsule) < 0) {
+        goto cleanup;
+    }
+
+    ret = 0;
+  cleanup:
+    Py_XDECREF(promoter_capsule);
+    Py_XDECREF(DType_tuple);
+
+    return ret;
+}
 
 #endif
