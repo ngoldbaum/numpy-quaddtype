@@ -257,8 +257,8 @@ quad_reduce_comp_strided_loop_unaligned(PyArrayMethod_Context *context, char *co
 
 
 NPY_NO_EXPORT int
-comparison_ufunc_promoter(PyUFuncObject *ufunc, PyArray_DTypeMeta *op_dtypes[],
-                          PyArray_DTypeMeta *signature[], PyArray_DTypeMeta *new_op_dtypes[])
+comparison_ufunc_promoter(PyObject *ufunc, PyArray_DTypeMeta *const op_dtypes[],
+                          PyArray_DTypeMeta *const signature[], PyArray_DTypeMeta *new_op_dtypes[])
 {
     PyArray_DTypeMeta *new_signature[NPY_MAXARGS];
     memcpy(new_signature, signature, 3 * sizeof(PyArray_DTypeMeta *));
@@ -344,7 +344,7 @@ create_quad_comparison_ufunc(PyObject *numpy, const char *ufunc_name)
             (PyObject *)&PyArray_BoolDType
         };
 
-        if (add_promoter(ufunc, left_DTypes, 3) != 0) {
+        if (add_promoter(ufunc, left_DTypes, 3, comparison_ufunc_promoter) != 0) {
             Py_DECREF(ufunc);
             return -1;
         }
@@ -355,7 +355,7 @@ create_quad_comparison_ufunc(PyObject *numpy, const char *ufunc_name)
             (PyObject *)&PyArray_BoolDType
         };
 
-        if (add_promoter(ufunc, right_DTypes, 3) != 0) {
+        if (add_promoter(ufunc, right_DTypes, 3, comparison_ufunc_promoter) != 0) {
             Py_DECREF(ufunc);
             return -1;
         }

@@ -486,7 +486,7 @@ create_quad_binary_2out_ufunc(PyObject *numpy, const char *ufunc_name)
             (PyObject *)&QuadPrecDType,
         };
 
-        if (add_promoter(ufunc, left_DTypes, 4) != 0) {
+        if (add_promoter(ufunc, left_DTypes, 4, quad_ufunc_promoter) != 0) {
             Py_DECREF(ufunc);
             return -1;
         }
@@ -498,7 +498,7 @@ create_quad_binary_2out_ufunc(PyObject *numpy, const char *ufunc_name)
             (PyObject *)&QuadPrecDType,
         };
 
-        if (add_promoter(ufunc, right_DTypes, 4) != 0) {
+        if (add_promoter(ufunc, right_DTypes, 4, quad_ufunc_promoter) != 0) {
             Py_DECREF(ufunc);
             return -1;
         }
@@ -555,7 +555,7 @@ create_quad_binary_ufunc(PyObject *numpy, const char *ufunc_name)
             (PyObject *)&QuadPrecDType,
         };
 
-        if (add_promoter(ufunc, left_DTypes, 3) != 0) {
+        if (add_promoter(ufunc, left_DTypes, 3, quad_ufunc_promoter) != 0) {
             Py_DECREF(ufunc);
             return -1;
         }
@@ -566,7 +566,7 @@ create_quad_binary_ufunc(PyObject *numpy, const char *ufunc_name)
             (PyObject *)&QuadPrecDType
         };
 
-        if (add_promoter(ufunc, right_DTypes, 3) != 0) {
+        if (add_promoter(ufunc, right_DTypes, 3, quad_ufunc_promoter) != 0) {
             Py_DECREF(ufunc);
             return -1;
         }

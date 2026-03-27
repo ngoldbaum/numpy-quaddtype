@@ -12,9 +12,10 @@
 #include "../dtype.h"
 
 inline int
-quad_ufunc_promoter(PyUFuncObject *ufunc, PyArray_DTypeMeta *op_dtypes[],
-                    PyArray_DTypeMeta *signature[], PyArray_DTypeMeta *new_op_dtypes[])
+quad_ufunc_promoter(PyObject *ob_ufunc, PyArray_DTypeMeta *const op_dtypes[],
+                    PyArray_DTypeMeta *const signature[], PyArray_DTypeMeta *new_op_dtypes[])
 {
+    PyUFuncObject *ufunc = (PyUFuncObject *)ufunc;
     int nin = ufunc->nin;
     int nargs = ufunc->nargs;
     PyArray_DTypeMeta *common = NULL;
@@ -56,7 +57,8 @@ quad_ufunc_promoter(PyUFuncObject *ufunc, PyArray_DTypeMeta *op_dtypes[],
     }
     // If no common output dtype, use standard promotion for inputs
     if (common == NULL) {
-        common = PyArray_PromoteDTypeSequence(nin, op_dtypes);
+        common = PyArray_PromoteDTypeSequence(
+                nin, (PyArray_DTypeMeta **)op_dtypes);
         if (common == NULL) {
             if (PyErr_ExceptionMatches(PyExc_TypeError)) {
                 PyErr_Clear();  // Do not propagate normal promotion errors
@@ -87,8 +89,8 @@ quad_ufunc_promoter(PyUFuncObject *ufunc, PyArray_DTypeMeta *op_dtypes[],
 }
 
 static inline int
-add_promoter(PyObject *ufunc,
-             PyObject *dtypes[], size_t n_dtypes)
+add_promoter(PyObject *ufunc, PyObject *dtypes[], size_t n_dtypes,
+             PyArrayMethod_PromoterFunction *promoter_impl)
 {
     PyObject *DType_tuple = NULL;
     PyObject *promoter_capsule = NULL;
@@ -106,7 +108,7 @@ add_promoter(PyObject *ufunc,
     }
 
     promoter_capsule = PyCapsule_New(
-            (void *)&quad_ufunc_promoter, "numpy._ufunc_promoter", NULL);
+            (void *)&promoter_impl, "numpy._ufunc_promoter", NULL);
 
     if (promoter_capsule == NULL) {
         goto cleanup;

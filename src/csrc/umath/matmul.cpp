@@ -437,7 +437,7 @@ init_matmul_ops(PyObject *numpy)
             (PyObject *)&QuadPrecDType,
         };
 
-        if (add_promoter(ufunc, left_DTypes, 3) != 0) {
+        if (add_promoter(ufunc, left_DTypes, 3, quad_ufunc_promoter) != 0) {
             Py_DECREF(ufunc);
             return -1;
         }
@@ -448,7 +448,7 @@ init_matmul_ops(PyObject *numpy)
             (PyObject *)&QuadPrecDType
         };
 
-        if (add_promoter(ufunc, right_DTypes, 3) != 0) {
+        if (add_promoter(ufunc, right_DTypes, 3, quad_ufunc_promoter) != 0) {
             Py_DECREF(ufunc);
             return -1;
         }
